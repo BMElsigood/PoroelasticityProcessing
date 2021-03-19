@@ -1,0 +1,13 @@
+name = "PoroelasticityProcessing"
+uuid = "5681e357-4ad3-42a2-9b36-44a3e81177e2"
+authors = ["BMElsigood <60468325+BMElsigood@users.noreply.github.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
