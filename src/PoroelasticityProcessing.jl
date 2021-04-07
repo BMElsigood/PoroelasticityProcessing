@@ -1,6 +1,7 @@
 module PoroelasticityProcessing
 
 using DataFrames
+using Statistics: mean
 include("types.jl")
 include("functions.jl")
 export keymechparams
