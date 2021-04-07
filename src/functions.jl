@@ -1,3 +1,4 @@
+
 """
     taken from Brantut BaseTools.jl
     linfit(x,y)
@@ -72,6 +73,15 @@ function linνz(mechStrainz,mechStrainx,iStart::Int64,iEnd::Int64)
     return ν
 end
 """
+    linEν_u(mechStress,mechStrain,iStart,iEnd)
+Calculate a combined Young's modulus and Poisson's ratio, L"$\frac{E^{\mathrm{u}}_x}{1-ν^{\mathrm{u}}_x}$, GPa"
+"""
+function linEν_u(mechStress,mechStrain,iStart,iEnd)
+    (a,c) = linfit(mechStrain[iStart:iEnd],mechStress[iStart:iEnd])
+    Eν = a .*1e-3
+    return Eν, c
+end
+"""
     darcyperm(t,p1,p2,vol,area,L,μ,iStart,iEnd)
 Calculate constant flow permeability where p1 and p2 are different measured pore pressures, length L apart
 """
@@ -82,16 +92,91 @@ function darcyperm(t,p1,p2,vol,area,L,μ,iStart,iEnd)
     k = Q*μ*L / (area * Δp)
     return k
 end
+"""
+    gassmann(Kd,K0,Kfl,ϕ)
+Gassmann fluid substitution to return undrained bulk modulus from drained.
+Kd - drained bulk modulus
+K0 - bulk modulus of solid
+Kfl - fluid modulus
+ϕ - porosity
+"""
+function gassmann(Kd,K0,Kfl,ϕ)
+    denom = ϕ / Kfl + (1-ϕ)/K0 -Kd/K0^2
+    Ku = Kd + (1 - Kd/K0)^2 / denom
+    return Ku
+end
+"""
+    gassmannCijkl(Cd,K0,Kfl,ϕ)
+Gassmann fluid substitution to get undrained compliance matrix from drained:
+* Cd::Array{Float64,2} - drained compliance matrix
+* K0 - bulk modulus of solid
+* Kfl - fluid modulus
+* ϕ - porosity
 
-function axstresssteps(isteps::Array{Int64,2},mechdata::keymechparams)
-    N = size(isteps,1)
-    array = undrainedaxstresssteps()
+### Returns
+Cu::Array{Float64,2}
+"""
+function gassmannCijkl(Cd::Array{Float64,2},K0,Kfl,ϕ)
+    Cu = copy(Cd)
+
+    denom = K0 / Kfl * ϕ * (K0 - Kfl) + K0 - (2Cd[1,1] + 2Cd[1,2] + 4Cd[1,3] + Cd[3,3])/9
+
+    Cu11 = Cd[1,1] + (K0 - (Cd[1,1]+Cd[1,2]+Cd[1,3])/3)^2 / denom
+    Cu12 = Cd[1,2] + (K0 - (Cd[1,1]+Cd[1,2]+Cd[1,3])/3)^2 / denom
+    Cu13 = Cd[1,3] + (K0 - (Cd[1,1]+Cd[1,2]+Cd[1,3])/3)^2 / denom
+    Cu33 = Cd[3,3] + (K0 - (Cd[3,3]+2Cd[1,3])/3)^2 / denom
+
+    Cu[1,1] = Cu11
+    Cu[1,2] = Cu12
+    Cu[1,3] = Cu13
+    Cu[2,1] = Cu12
+    Cu[2,2] = Cu11
+    Cu[2,3] = Cu13
+    Cu[3,1] = Cu13
+    Cu[2,3] = Cu13
+    Cu[3,3] = Cu33
+    #Cu44 = Cd44, Cu66 = Cd66
+
+    return Cu
+end
+"""
+    axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
+
+Calculates a linear fit of the undrained step in axial stress between indices: istart and iend where istart is the onset of friction
+### Returns
+DataFrame of length(istart)
+columns: |meanstress|Bz|Ez|νz|
+"""
+function axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
+    N = length(istart)
+    array = zeros(N,4)
     for i in 1:N
-        push!(array.meanstress,mean(mechdata.stress[isteps[i,2]:isteps[i,3]]))
-        push!(array.Bz,linBz(mechdata.stress,mechdata.pp,isteps[i,2],isteps[i,3]))
-        push!(array.Ez,linEz(mechdata.stress,mechdata.εz,isteps[i,2],isteps[i,3]))
-        push!(array.νz,linνz(mechdata.εz,mechdata.εx,isteps[i,2],isteps[i,3]))
-        #array[i,:]=[meanstress Bz Ez νz]
+        array[i,1] = mean(mechdata.stress[istart[i]:iend[i]])
+        array[i,2] = linBz(mechdata.stress,mechdata.pp,istart[i],iend[i])
+        array[i,3] = linEz(mechdata.stress,mechdata.εz,istart[i],iend[i])
+        array[i,4] = linνz(mechdata.εz,mechdata.εx,istart[i],iend[i])
     end
-    return array
+    colnames = ["meanstress","Bz","Ez","νz"]
+    results = DataFrame(array,colnames)
+    return results
+end
+"""
+    radstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
+
+Calculates a linear fit of the undrained step in radial stress (from increasing Pc pump) between indices istart and iend which is the linear part of the increase
+### Returns
+DataFrame of length(istart)
+columns: |meanstress|Bx|Eνz|
+"""
+function radstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
+    N = size(istart)
+    array = zeros(N,3)
+    for i in 1:N
+        array[i,1] = mean(mechdata.stress[istart[i]:iend[i]])
+        array[i,2] = linBx(mechdata.stress,mechdata.pp,istart[i],iend[i])
+        array[i,3] = linEνx(mechdata.stress,mechdata.εz,istart[i],iend[i])
+    end
+    colnames = ["meanstress","Bx","Eνx"]
+    results = DataFrame(array,colnames)
+    return results
 end
