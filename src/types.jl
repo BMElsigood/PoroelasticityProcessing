@@ -38,32 +38,9 @@ struct keymechparams
     εz::Array{Float64,1}
     εx::Array{Float64,1}
 end
-#=
 function show(io::IO, data::keymechparams)
     println("keymechparams:")
     for f in fieldnames(typeof(data))
         println(" .",f, " : ", getproperty(data,f))
     end
-end
-=#
-mutable struct undrainedaxstresssteps
-    meanstress::Array{Float64,1}
-    Bz::Array{Float64,1}
-    Ez::Array{Float64,1}
-    νz::Array{Float64,1}
-end
-undrainedaxstresssteps(x) = undrainedaxstresssteps(x,x,x,x)
-undrainedaxstresssteps() = undrainedaxstresssteps([0])
-
-struct loadindices
-    iloadstart::Array{Int64,1}
-    iaxstrain::Array{Int64,1}
-    iloadend::Array{Int64,1}
-end
-
-struct Pcindices
-    iPcstart::Array{Int64,1}
-    ilinPcstart::Array{Int64,1}
-    ilinPcend::Array{Int64,1}
-    iPcend::Array{Int64,1}
 end
