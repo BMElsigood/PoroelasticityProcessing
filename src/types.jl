@@ -38,9 +38,11 @@ struct keymechparams
     εz::Array{Float64,1}
     εx::Array{Float64,1}
 end
+#=
 function show(io::IO, data::keymechparams)
     println("keymechparams:")
     for f in fieldnames(typeof(data))
         println(" .",f, " : ", getproperty(data,f))
     end
 end
+=#
