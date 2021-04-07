@@ -74,7 +74,7 @@ function linνz(mechStrainz,mechStrainx,iStart::Int64,iEnd::Int64)
 end
 """
     linEν_u(mechStress,mechStrain,iStart,iEnd)
-Calculate a combined Young's modulus and Poisson's ratio, L"$\frac{E^{\mathrm{u}}_x}{1-ν^{\mathrm{u}}_x}$, GPa"
+Calculate a combined Young's modulus and Poisson's ratio, (E^u_x)/(1-(ν^u_x))
 """
 function linEν_u(mechStress,mechStrain,iStart,iEnd)
     (a,c) = linfit(mechStrain[iStart:iEnd],mechStress[iStart:iEnd])
