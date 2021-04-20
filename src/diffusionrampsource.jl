@@ -61,8 +61,8 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     pcalc = p_ramp(t0,tau, y, l,B,ramp,trampstop, phi[2:end])
 
     if axial == 1
-        B = 3.*B #Bz
-    else B = 3./2.*B #Bx
+        B = 3 .*B #Bz
+    else B = 3 ./2 .*B #Bx
     end
     if pswitch == 1
         figure()
