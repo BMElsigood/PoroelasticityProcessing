@@ -49,6 +49,7 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     #    ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.Pc[ipstart:ipmax])[1]
     #else
         ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.stress[ipstart:ipmax])[1]
+    println("ramp = $ramp | trampstop = $trampstop")
     #end
     # fit ℓ and τℓ
     (ℓbest, τℓbest,Bbest, pcalc, likelyhood) = invertp2ramp(t, Pfnint, y, ℓrange, τℓrange,Brange,ramp,trampstop,L)
@@ -117,7 +118,6 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
         println("loop: iB = $iB")
         for (il, l) in enumerate(lrange)
             phi = rootsf(l,40)
-            println("phi = $phi")
             for (it, taul) in enumerate(taulrange)
                 tau = taul*l
                 pcalc = p_ramp(t,tau,y,l,B,ramp,t0,phi[2:end],len)
