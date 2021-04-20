@@ -36,7 +36,6 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     pexpundrain = mechdata.pp[ipexpundrain]
 
     Pf = mechdata.pp[ipstart:ipexpundrain] .- pstart
-    Pf1 = mechdata.pp[ipstart:ipmax+50] .- pstart
 
     # interpolate on regular time grid
     # pressure data
@@ -49,11 +48,11 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     #    ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.Pc[ipstart:ipmax])[1]
     #else
         ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.stress[ipstart:ipmax])[1]
-    println("ramp = $ramp | trampstop = $trampstop")
     #end
     # fit ℓ and τℓ
     (ℓbest, τℓbest,Bbest, pcalc, likelyhood) = invertp2ramp(t, Pfnint, y, ℓrange, τℓrange,Brange,ramp,trampstop,L)
-
+    figure()
+    plot(t,Pfnint)
     perm = (L*βres*η)/(A)./τℓbest
     stor = ℓbest*βres/(A*L)
     tau = τℓbest*ℓbest
