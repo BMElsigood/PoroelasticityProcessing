@@ -31,7 +31,7 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     #σp = 1.0*ones(size(Pf,2))
 
     # normalise Pf for each interval
-    pstart = mechdata.time[ipstart]
+    pstart = mechdata.pp[ipstart]
     pmax = mechdata.pp[ipmax]
     pexpundrain = mechdata.pp[ipexpundrain]
 
