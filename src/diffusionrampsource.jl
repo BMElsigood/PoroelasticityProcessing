@@ -62,6 +62,9 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
         B = 3 .*B #Bz
     else B = 3 ./2 .*B #Bx
     end
+    println("stor = $stor")
+    println("perm = $perm")
+    println("B = $B")
     return perm,stor,B,likelyhood
 end
 
