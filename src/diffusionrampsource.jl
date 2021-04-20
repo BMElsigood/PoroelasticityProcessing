@@ -3,7 +3,7 @@
 # Time normalised by tau = L^2/alpha
 # Nondimensional parameter l = A L beta/C_res (A: sample area, beta: sample storage, C_res: reservoir storage)
 # Flux normalised by A L beta DeltaP/tau
-
+using PyPlot
 
 """
 pressurerampsolution(mecht,mechpp,mechstress,y,ipstart,ipmax,ipexpundrain;
@@ -51,6 +51,7 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     #end
     # fit ℓ and τℓ
     (ℓbest, τℓbest,Bbest, pcalc, likelyhood) = invertp2ramp(t, Pfnint, y, ℓrange, τℓrange,Brange,ramp,trampstop,L)
+
     figure()
     plot(t,Pfnint)
     perm = (L*βres*η)/(A)./τℓbest
