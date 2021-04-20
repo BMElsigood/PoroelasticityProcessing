@@ -117,13 +117,13 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
         println("loop: iB = $iB")
         for (il, l) in enumerate(lrange)
             phi = rootsf(l,40)
+            println("phi = $phi")
             for (it, taul) in enumerate(taulrange)
                 tau = taul*l
                 pcalc = p_ramp(t,tau,y,l,B,ramp,t0,phi[2:end],len)
                 L[it,il,iB] = sum(sum(abs.(pcalc .- pobs),dims=2)./permutedims(sigma))
             end
         end
-        println("phi = $phi")
     end
 
     println("size(L) = ",size(L))
