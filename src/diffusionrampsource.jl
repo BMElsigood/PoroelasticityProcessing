@@ -94,7 +94,12 @@ function rootsf(l, N)
     return out
 end
 
-function invertp2ramp(t, pobs, y, lrange, taulrange,Brange,ramp,t0,len)
+function invertp2ramp(t, pobs, y::Float64, lrange, taulrange,Brange,ramp,t0,len)
+    sigma = [1]
+    return invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
+end
+
+function invertp2ramp(t, pobs, y::AbstractVector, lrange, taulrange,Brange,ramp,t0,len)
     sigma = ones(size(y))
     return invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
 end
