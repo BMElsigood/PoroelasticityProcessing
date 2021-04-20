@@ -140,6 +140,63 @@ function gassmannCijkl(Cd::Array{Float64,2},K0,Kfl,ϕ)
     return Cu
 end
 """
+    sayers95(S::Array{Float64,2},E0,ν0)
+Uses Sayers and Kachanov (1995) (doi:10.1029/94JB03134) to get normalised crack density tensors, 2 α and 3 β
+Input S is 6x6 stiffness matrix
+### Returns
+array of noramlised α11,α33,β1111,β1133,β3333
+"""
+function sayers95(S::Array{Float64,2},E0,ν0)
+        C0 = stiffmatrixTI(E0,ν0)
+        S0 = inv(C0)
+        ΔS1111 = S[1,1] - S0[1,1] #eq 16
+        ΔS3333 = S[3,3] - S0[3,3] #eq 17
+        ΔS1212 = .25 .*(S[6,6] - S0[6,6]) #eq 18
+        ΔS2323 = .25 .*(S[4,4] - S0[4,4]) #eq 19
+        ΔS1122 = S[1,2] - S0[1,2] #eq 20
+        ΔS2233 = S[2,3] - S0[2,3] #eq 21
+
+        ΔS = [ΔS1111;ΔS3333;ΔS1212;ΔS2323;ΔS1122;ΔS2233]
+
+        A = [1 0 1 0 0; #eq 16
+                0 1 0 0 1; #eq 17
+                .5 0 .5 0 0; #eq 18
+                .25 .25 0 1 0; #eq 19
+                0 0 1/3 0 0; #eq 20
+                0 0 0 1 0] #eq 21
+
+        αβ = A\ΔS
+        γ = αβ .* 3*E0*(2-ν0)/(32*(1-ν0^2))
+
+        return γ
+end
+"""
+    Bx(S,ν0,E0,ϕ,βf)
+"""
+Bx(S,ν0,E0,ϕ,βf) = 3(S[1,1]+S[1,2]+S[1,3] - (1 - 2ν0)/E0)/
+                    (2S[1,1]+S[3,3]+2S[1,2]+4S[1,3] + ϕ*βf -
+                        (1+ϕ)*3*(1-2ν0)/E0)
+"""
+    Bz(S,ν0,E0,ϕ,βf)
+"""
+Bz(S,ν0,E0,ϕ,βf) = 3(2S[1,3]+S[3,3] - (1 - 2ν0)/E0)/
+                    (2S[1,1]+S[3,3]+2S[1,2]+4S[1,3] + ϕ*βf -
+                        (1+ϕ)*3*(1-2ν0)/E0)
+"""
+    B(S,ν0,E0,ϕ,βf)
+"""
+B(S,ν0,E0,ϕ,βf) = 2/3 .*Bx(S,ν0,E0,ϕ,βf) .+1/3 .*Bz(S,ν0,E0,ϕ,βf)
+
+"""
+    density(mass,length,diameter)
+"""
+function density(mass,length,diameter)
+    volume = length * π*(diameter/2)^2
+    ρ = mass / volume #kg/m3
+
+    return ρ
+end
+"""
     axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
 
 Calculates a linear fit of the undrained step in axial stress between indices: istart and iend where istart is the onset of friction
@@ -173,10 +230,128 @@ function radstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::ke
     array = zeros(N,3)
     for i in 1:N
         array[i,1] = mean(mechdata.stress[istart[i]:iend[i]])
-        array[i,2] = linBx(mechdata.stress,mechdata.pp,istart[i],iend[i])
-        array[i,3] = linEνx(mechdata.stress,mechdata.εz,istart[i],iend[i])
+        array[i,2] = linBx(mechdata.Pc,mechdata.pp,istart[i],iend[i])
+        array[i,3] = linEνx(mechdata.Pc,mechdata.εz,istart[i],iend[i])
     end
     colnames = ["meanstress","Bx","Eνx"]
     results = DataFrame(array,colnames)
     return results
+end
+"""
+    axstressstepsdiff(y,istart::Array{Int64,1},ipmax::Array{Int64,1},ipexpundrain::Array{Int64,1},mechdata::keymechparams;
+                            Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
+                            η=0.9096e-3,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15)
+
+Diffusion fit to get permeability, storage capacity
+### Returns
+DataFrame of length(istart)
+columns: |meanstress|perm|stor|Bz|
+"""
+function axstressstepsdiff(y,istart::Array{Int64,1},ipmax::Array{Int64,1},ipexpundrain::Array{Int64,1},mechdata::keymechparams;
+                            Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
+                            η=0.9096e-3,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15)
+    N = length(istart)
+    array = zeros(N,4)
+    for i in 1:N
+        diff = pressurerampsolution(mechdata,y,istart[i],ipmax[i],ipexpundrain[i],Srange=Srange,krange=krange,Brange=Brange,η=η,A=A,L=L,βres=βres)
+        array[i,1] = mean(mechdata.stress[istart[i]:ipexpundrain[i]])
+        array[i,2] = diff[1]
+        array[i,3] = diff[2]
+        array[i,4] = diff[3]
+    end
+    colnames = ["meanstress","perm","stor","Bz"]
+    results = DataFrame(array,colnames)
+    return results
+end
+
+"""
+    radstressstepsdiff(y,istart::Array{Int64,1},ipmax::Array{Int64,1},ipexpundrain::Array{Int64,1},mechdata::keymechparams;
+                            Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
+                            η=0.9096e-3,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15)
+
+Diffusion fit to get permeability, storage capacity
+### Returns
+DataFrame of length(istart)
+columns: |meanstress|perm|stor|Bz|
+"""
+function radstressstepsdiff(y,istart::Array{Int64,1},ipmax::Array{Int64,1},ipexpundrain::Array{Int64,1},mechdata::keymechparams;
+                            Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
+                            η=0.9096e-3,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15)
+    N = length(istart)
+    array = zeros(N,4)
+    for i in 1:N
+        diff = pressurerampsolution(mechdata,y,istart[i],ipmax[i],ipexpundrain[i],axial=0,Srange=Srange,krange=krange,Brange=Brange,η=η,A=A,L=L,βres=βres)
+        array[i,1] = mean(mechdata.stress[istart[i]:ipexpundrain[i]])
+        array[i,2] = diff[1]
+        array[i,3] = diff[2]
+        array[i,4] = diff[3]
+    end
+    colnames = ["meanstress","perm","stor","Bx"]
+    results = DataFrame(array,colnames)
+    return results
+end
+
+"""
+    lininterp(x::AbstractVector,y::AbstractVector,xi::AbstractVector)
+Taken from NBrantut BaseTools
+"""
+function lininterp(x::AbstractVector,y::AbstractVector,xi::AbstractVector)
+    yi = zeros(eltype(y), length(xi))
+
+    # first check if x is sorted and there are no repeated values
+    if ~allunique(x)
+        error("Values in x should be distinct")
+    end
+
+    if ~issorted(x)
+        I = sortperm(x)
+        x = x[I] #this apparently creates a copy of x, so output not modifed
+        y = y[I]
+    end
+
+    # sort xi
+    if ~issorted(xi)
+        J = sortperm(xi)
+        xi = xi[J]
+    else
+        J = 1:length(xi)
+    end
+
+
+    N = length(x)
+
+    for (k,xk) in enumerate(xi)
+        m = searchsortedlast(x, xk)
+        n = min(max(1, m), N-1)
+        yi[J[k]] = y[n] + (xk - x[n])*(y[n+1] - y[n])/(x[n+1]- x[n])
+    end
+
+    return yi
+
+end
+"""
+    lininterp(x::AbstractVector,y::AbstractVector,xi::Number)
+Taken from NBrantut BaseTools
+"""
+function lininterp(x::AbstractVector,y::AbstractVector,xi::Number)
+
+    # first check if x is sorted and there are no repeated values
+    if ~allunique(x)
+        error("Values in x should be distinct")
+    end
+
+    if ~issorted(x)
+        I = sortperm(x)
+        x = x[I] #this apparently creates a copy of x, so output not modifed
+        y = y[I]
+    end
+
+    N = length(x)
+
+    m = searchsortedlast(x, xi)
+    n = min(max(1, m), N-1)
+    yi = y[n] + (xi - x[n])*(y[n+1] - y[n])/(x[n+1]- x[n])
+
+    return yi
+
 end
