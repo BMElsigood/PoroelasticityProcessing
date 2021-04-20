@@ -44,7 +44,7 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     t = collect(range(t0[1], stop=t0[end],length=30))
 
     Pfnint = lininterp(t0, Pf, t)
-    trampstop = mechdata.time[ipmax]-mecht[ipstart]
+    trampstop = mechdata.time[ipmax]-mechdata.time[ipstart]
     if axial == 1
         ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.stress[ipstart:ipmax])[1]
     else ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.Pc[ipstart:ipmax])[1]
