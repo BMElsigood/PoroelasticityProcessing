@@ -165,14 +165,14 @@ function p_ramp(t::Float64,tau,y::Float64,l,B,ramp,t0, phi,len)
     return r
 end
 
-function p_ramp(t::AbstractVector,tau,y::Float64,l,B,ramp,t0, phi)
-    return map(x->p_ramp(x,tau, y, l,B,ramp,t0, phi), t)
+function p_ramp(t::AbstractVector,tau,y::Float64,l,B,ramp,t0, phi,len)
+    return map(x->p_ramp(x,tau, y, l,B,ramp,t0, phi,len), t)
 end
 
-function p_ramp(t::AbstractVector,tau, y::AbstractVector,l,B,ramp,t0, phi)
+function p_ramp(t::AbstractVector,tau, y::AbstractVector,l,B,ramp,t0, phi,len)
     out = zeros(length(t), length(y))
     for (i,yy) in enumerate(y)
-        out[:,i] = p_ramp(t,tau, yy,l,B,ramp,t0, phi)
+        out[:,i] = p_ramp(t,tau, yy,l,B,ramp,t0, phi,len)
     end
     return out
 end
