@@ -128,7 +128,7 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
     taubest = taulbest*lbest
     Bbest = Brange[I[3]]
 
-    pcalc = p_ramp(t,taubest, y, lbest,Bbest,ramp,t0,rootsf(lbest, 40)[2:end])
+    pcalc = p_ramp(t,taubest, y, lbest,Bbest,ramp,t0,rootsf(lbest, 40)[2:end],len)
     println("size pcalc = ",size(pcalc))
     #=
     #compute marginal pdfs
