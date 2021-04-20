@@ -18,7 +18,7 @@ L = 100.0e-3
 βres = 9e-15
 """
 function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundrain;
-                                axial = 1,pswitch=0,Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
+                                axial = 1,Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
                                 η=0.9096e-3,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15)
 
     l(A,L,βres,S) = A*L*S/βres
@@ -63,20 +63,6 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     if axial == 1
         B = 3 .*B #Bz
     else B = 3 ./2 .*B #Bx
-    end
-    if pswitch == 1
-        figure()
-        xlabel("Time, s")
-        ylabel(L"p - p_0")
-        plot(t0,Pf,"k",label="data")
-        plot(t,pcalc,"r",label = "fit")
-        plot(t0,ramp .*B[1].*t0,"k",alpha=0.2,linewidth=2)
-        annotate(string("k = ",round(perm[1],sigdigits=2)," m",L"^2","\n",
-                        "β = ",round(stor[1],sigdigits=2)," Pa",L"^{-1}","\n",
-                        "Bi = ",round(B[1],sigdigits=2)),
-                        xy=[0.8,.1],xycoords = "axes fraction")
-        legend()
-        xlim([0,maximum(t)])
     end
     return perm,stor,B,likelyhood
 end
