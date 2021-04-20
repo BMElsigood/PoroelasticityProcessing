@@ -57,8 +57,6 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     tau = τℓbest*ℓbest
     l = ℓbest
     B = Bbest
-    phi = rootsf(l,40)
-    pcalc = p_ramp(t0,tau, y, l,B,ramp,trampstop, phi[2:end])
 
     if axial == 1
         B = 3 .*B #Bz
