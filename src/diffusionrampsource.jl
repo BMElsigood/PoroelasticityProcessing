@@ -50,7 +50,7 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     else ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.Pc[ipstart:ipmax])[1]
     end
     # fit ℓ and τℓ
-    (ℓbest, τℓbest,Bbest, pcalc, likelyhood) = invertp2ramp(t, Pfnint, y, ℓrange, τℓrange,Brange,ramp,trampstop)
+    (ℓbest, τℓbest,Bbest, pcalc, likelyhood) = invertp2ramp(t, Pfnint, y, ℓrange, τℓrange,Brange,ramp,trampstop,L)
 
     perm = (L*βres*η)/(A)./τℓbest
     stor = ℓbest*βres/(A*L)
@@ -94,12 +94,12 @@ function rootsf(l, N)
     return out
 end
 
-function invertp2ramp(t, pobs, y, lrange, taulrange,Brange,ramp,t0)
+function invertp2ramp(t, pobs, y, lrange, taulrange,Brange,ramp,t0,len)
     sigma = ones(size(y))
-    return invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0)
+    return invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
 end
 
-function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0)
+function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
 
     NB = length(Brange)
     Nl = length(lrange)
@@ -112,7 +112,7 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0)
             phi = rootsf(l,40)
             for (it, taul) in enumerate(taulrange)
                 tau = taul*l
-                pcalc = p_ramp(t,tau,y,l,B,ramp,t0,phi[2:end])
+                pcalc = p_ramp(t,tau,y,l,B,ramp,t0,phi[2:end],len)
                 L[it,il,iB] = sum(sum(abs.(pcalc .- pobs),dims=2)./permutedims(sigma))
             end
         end
@@ -149,17 +149,17 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0)
 end
 
 # with ramp of stress A = (Bz/3) dσz/dt or A = B dPc/dt, until time t0 when stress is constant
-function p_ramp(t::Float64,tau,y::Float64,l,B,ramp,t0, phi)
+function p_ramp(t::Float64,tau,y::Float64,l,B,ramp,t0, phi,len)
     A = B*ramp
     if t < t0
         r = A*t*(1- 2/(l+2))
         for phik in phi
-            r += (tau*A/(4*phik^2))*(1-exp(-4*phik^2 *t /tau))*(2.0*cos(2*phik*y/L)*sin(phik))/(phik - cos(phik)sin(phik))
+            r += (tau*A/(4*phik^2))*(1-exp(-4*phik^2 *t /tau))*(2.0*cos(2*phik*y/len)*sin(phik))/(phik - cos(phik)sin(phik))
         end
     else
         r = A*t0*(1-2/(l+2))
         for phik in phi
-            r += (tau*A/(4*phik^2))*(exp(-4*phik^2 *(t-t0)/tau)-exp(-4*phik^2 *t/tau))*(2.0*cos(2*phik*y/L)*sin(phik))/(phik - cos(phik)sin(phik))
+            r += (tau*A/(4*phik^2))*(exp(-4*phik^2 *(t-t0)/tau)-exp(-4*phik^2 *t/tau))*(2.0*cos(2*phik*y/len)*sin(phik))/(phik - cos(phik)sin(phik))
         end
     end
     return r
