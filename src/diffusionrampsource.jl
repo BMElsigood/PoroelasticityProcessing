@@ -3,7 +3,6 @@
 # Time normalised by tau = L^2/alpha
 # Nondimensional parameter l = A L beta/C_res (A: sample area, beta: sample storage, C_res: reservoir storage)
 # Flux normalised by A L beta DeltaP/tau
-using PyPlot
 
 """
 pressurerampsolution(mecht,mechpp,mechstress,y,ipstart,ipmax,ipexpundrain;
@@ -44,16 +43,14 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
 
     Pfnint = lininterp(t0, Pf, t)
     trampstop = mechdata.time[ipmax]-mechdata.time[ipstart]
-    #if axial == 0
-    #    ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.Pc[ipstart:ipmax])[1]
-    #else
+    if axial == 0
+        ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.Pc[ipstart:ipmax])[1]
+    else
         ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.stress[ipstart:ipmax])[1]
-    #end
+    end
     # fit ℓ and τℓ
     (ℓbest, τℓbest,Bbest, pcalc, likelyhood) = invertp2ramp(t, Pfnint, y, ℓrange, τℓrange,Brange,ramp,trampstop,L)
 
-    figure()
-    plot(t,Pfnint)
     perm = (L*βres*η)/(A)./τℓbest
     stor = ℓbest*βres/(A*L)
     tau = τℓbest*ℓbest
@@ -64,9 +61,6 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
         B = 3 .*B #Bz
     else B = 3 ./2 .*B #Bx
     end
-    println("stor = $stor")
-    println("perm = $perm")
-    println("B = $B")
     return perm,stor,B,likelyhood
 end
 
@@ -134,7 +128,6 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
     Bbest = Brange[I[3]]
 
     pcalc = p_ramp(t,taubest, y, lbest,Bbest,ramp,t0,rootsf(lbest, 40)[2:end],len)
-    println("size pcalc = ",size(pcalc))
     #=
     #compute marginal pdfs
     # here we use log of x,y values because they are jeffreys parameters!!
