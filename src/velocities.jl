@@ -93,7 +93,7 @@ end
 
 function surveytocompliancedf(surveyrange,ρ,(θp,vp),(θsh,vsh))
     N = length(surveyrange)
-    array = zeros(N,11)
+    array = Array{any}(nothing,N,11)
     for (n,i) in enumerate(surveyrange)
         array[i,1] = i
         array[i,2] = θp
