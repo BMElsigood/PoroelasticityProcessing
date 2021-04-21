@@ -37,7 +37,7 @@ function svyCompliancet(survey,ρ,(θp,vp)::Tuple{Array{Float64,1},Array{Array{F
     sh = VMeasure.(θsh,vsh[survey].*1e-3,angerr,vsherr);
     sv = VMeasure[]
 
-    C0 = stiffmatrixTI(vpvsYoungsPoisson(p[1].value,sh[1].value,ρ))
+    C0 = stiffmatrixTI(vpvsYoungsPoisson(p[1].value,sh[1].value,ρ)...)
     ϵ, δ, γ = moduli2thomsen(C0)
     vp0,vs0 = velocities0(C0,ρ)
 
