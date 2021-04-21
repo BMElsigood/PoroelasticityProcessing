@@ -25,16 +25,15 @@ function linBz(mechStress,mechPp,iStart::Int64,iEnd::Int64)
     Bz = 3a
     return Bz
 end
-
 """
-    linB(mechStress,mechPp,iStart::Int64,iEnd::Int64)
+    linBx(mechStress,mechPp,iStart::Int64,iEnd::Int64)
 
-Calculate Skempton's coefficient B from a linear fit of confining pressure and pore pressure between indices iStart and iEnd
+Calculate Skempton's coefficient Bx from a linear fit of radial stress (Pc at load control) and pore pressure between indices iStart and iEnd
 """
-function linB(mechStress,mechPp,iStart::Int64,iEnd::Int64)
+function linBx(mechStress,mechPp,iStart::Int64,iEnd::Int64)
     (a,c) = linfit(mechStress[iStart:iEnd],mechPp[iStart:iEnd])
-    B = a
-    return B
+    Bx = 3a/2
+    return Bx
 end
 
 """
