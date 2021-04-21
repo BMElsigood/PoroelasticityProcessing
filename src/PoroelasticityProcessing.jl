@@ -1,6 +1,6 @@
 module PoroelasticityProcessing
 
-using DataFrames, Roots, SpecialFunctions, QuadGK, NumericalIntegration
+using DataFrames, Roots, SpecialFunctions, QuadGK, NumericalIntegration, VTIModuli
 using Statistics: mean
 include("types.jl")
 include("functions.jl")
