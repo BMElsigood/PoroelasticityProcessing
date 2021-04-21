@@ -97,9 +97,9 @@ function surveytocompliancedf(surveyrange,ρ,(θp,vp),(θsh,vsh))
     for (n,i) in enumerate(surveyrange)
         array[i,1] = i
         array[i,2] = θp
-        array[i,3] = Vp
+        array[i,3] = vp
         array[i,4] = θsh
-        array[i,5] = Vsh
+        array[i,5] = vsh
         if n == 1
             C1,cm,anglep,anglesh = svyCompliancet(survey,ρ,(θp,vp),(θsh,vsh))
         else C1,cm,anglep,anglesh = svyCompliancet(survey,ρ,(θp,vp),(θsh,vsh),C1)
