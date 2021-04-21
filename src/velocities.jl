@@ -112,7 +112,7 @@ function surveytocompliancedf(surveyrange,ρ,(θp,vp),(θsh,vsh))
         vshgroup = phasetogroupvsh.(anglesh,Ref(C1),ρ)
         array[i,11] = vshgroup
     end
-    colnames = ["Index","θp","Vp","θsh","Vsh","ϵ","δ","γ","vpgroup","vshgroup"]
+    colnames = ["Index","θp","Vp","θsh","Vsh","C","ϵ","δ","γ","vpgroup","vshgroup"]
     results = DataFrame(array,colnames)
     return results
 end
