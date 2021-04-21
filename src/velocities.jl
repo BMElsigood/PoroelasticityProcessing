@@ -101,8 +101,8 @@ function surveytocompliancedf(surveyrange,ρ,(θp,vp),(θsh,vsh))
         array[i,4] = θsh
         array[i,5] = vsh
         if n == 1
-            C1,cm,anglep,anglesh = svyCompliancet(survey,ρ,(θp,vp),(θsh,vsh))
-        else C1,cm,anglep,anglesh = svyCompliancet(survey,ρ,(θp,vp),(θsh,vsh),C1)
+            C1,cm,anglep,anglesh = svyCompliancet(i,ρ,(θp,vp),(θsh,vsh))
+        else C1,cm,anglep,anglesh = svyCompliancet(i,ρ,(θp,vp),(θsh,vsh),C1)
         end
         array[i,6] = C1
         ϵ, δ, γ = moduli2thomsen(C1)
