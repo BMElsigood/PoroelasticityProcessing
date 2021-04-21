@@ -107,9 +107,9 @@ function surveytocompliancedf(surveyrange,ρ,(θp,vp),(θsh,vsh))
         array[i,6] = C1
         ϵ, δ, γ = moduli2thomsen(C1)
         array[i,7:9] = [ϵ, δ, γ]
-        vpgroup = phasetogroupvp.(anglep,ref(C1),ρ)
+        vpgroup = phasetogroupvp.(anglep,Ref(C1),ρ)
         array[i,10] = vpgroup
-        vshgroup = phasetopgroupvsh.(anglesh,ref(C1),ρ)
+        vshgroup = phasetopgroupvsh.(anglesh,Ref(C1),ρ)
         array[i,11] = vshgroup
     end
     colnames = ["Index","θp","Vp","θsh","Vsh","ϵ","δ","γ","vpgroup","vshgroup"]
