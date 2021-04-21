@@ -226,7 +226,7 @@ DataFrame of length(istart)
 columns: |meanstress|Bx|Eνz|
 """
 function radstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
-    N = size(istart)
+    N = length(istart)
     array = zeros(N,3)
     for i in 1:N
         array[i,1] = mean(mechdata.stress[istart[i]:iend[i]])
