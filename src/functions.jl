@@ -46,7 +46,18 @@ function linEz(mechStress,mechStrain,iStart::Int64,iEnd::Int64)
     E = a .*1e-3
     return E
 end
-
+"""
+    Ez(mechStress,mechStrain,iStart,iEnd)
+Calculate Young's modulus between 2 points iStart and iEnd. Used to calculate drained Young's modulus for an undrained step.
+"""
+function Ez(mechStress,mechStrain,iStart,iEnd)
+    ΔStress = mechStress[iEnd] -
+                    mechStress[iStart]
+    ΔStrain = mechStrain[iEnd] -
+                    mechStrain[iStart]
+    E = ΔStress ./ ΔStrain
+    return E .*1e-3 #GPa
+end
 """
     volStrain(axStrain,radStrain)
 """
@@ -71,6 +82,18 @@ function linνz(mechStrainz,mechStrainx,iStart::Int64,iEnd::Int64)
     ν = -a
     return ν
 end
+"""
+    νz(mechStrainz,mechStrainx,iStart,iEnd)
+
+Calculate Poisson's ratio between 2 points iStart, iEnd. Used for drained Poisson's ratio following undrained step.
+"""
+function νz(mechStrainz,mechStrainx,iStart,iEnd)
+    dνradial = mechStrainx[iEnd]-mechStrainx[iStart]
+    dνaxial = mechStrainz[iEnd]-mechStrainz[iStart]
+    νz = -dνradial/dνaxial
+    return νz
+end
+
 """
     linEν_u(mechStress,mechStrain,iStart,iEnd)
 Calculate a combined Young's modulus and Poisson's ratio, (E^u_x)/(1-(ν^u_x))
@@ -196,23 +219,25 @@ function density(mass,length,diameter)
     return ρ
 end
 """
-    axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
+    axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},idrain::Array{Int64,1},mechdata::keymechparams)
 
-Calculates a linear fit of the undrained step in axial stress between indices: istart and iend where istart is the onset of friction
+Calculates a linear fit of the undrained step in axial stress between indices: istart and iend where istart is the onset of friction. And drained Young's modulus and Poisson's ratio between 2 points: onset of friction and fully drained.
 ### Returns
 DataFrame of length(istart)
-columns: |meanstress|Bz|Ez|νz|
+columns: |meanstress|Bz|Ezu|νzu|Ezd|νzd|
 """
-function axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
+function axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},idrain::Array{Int64,1},mechdata::keymechparams)
     N = length(istart)
-    array = zeros(N,4)
+    array = zeros(N,6)
     for i in 1:N
         array[i,1] = mean(mechdata.stress[istart[i]:iend[i]])
         array[i,2] = linBz(mechdata.stress,mechdata.pp,istart[i],iend[i])
         array[i,3] = linEz(mechdata.stress,mechdata.εz,istart[i],iend[i])
         array[i,4] = linνz(mechdata.εz,mechdata.εx,istart[i],iend[i])
+        array[i,5] = Ez(mechdata.stress,mechdata.εx,istart[i],idrain[i])
+        array[i,6] = νz(mechdata.εz,mechdata.εx,istart[i],idrain[i])
     end
-    colnames = ["meanstress","Bz","Ez","νz"]
+    colnames = ["meanstress","Bz","Ezu","νzu","Ezd","νzd"]
     results = DataFrame(array,colnames)
     return results
 end
