@@ -234,7 +234,7 @@ function axstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},idrain::Array
         array[i,2] = linBz(mechdata.stress,mechdata.pp,istart[i],iend[i])
         array[i,3] = linEz(mechdata.stress,mechdata.εz,istart[i],iend[i])
         array[i,4] = linνz(mechdata.εz,mechdata.εx,istart[i],iend[i])
-        array[i,5] = Ez(mechdata.stress,mechdata.εx,istart[i],idrain[i])
+        array[i,5] = Ez(mechdata.stress,mechdata.εz,istart[i],idrain[i])
         array[i,6] = νz(mechdata.εz,mechdata.εx,istart[i],idrain[i])
     end
     colnames = ["meanstress","Bz","Ezu","νzu","Ezd","νzd"]
