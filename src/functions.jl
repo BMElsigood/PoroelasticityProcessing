@@ -145,7 +145,7 @@ function gassmannCijkl(Cd::Array{Float64,2},K0,Kfl,ϕ)
 
     Cu11 = Cd[1,1] + (K0 - (Cd[1,1]+Cd[1,2]+Cd[1,3])/3)^2 / denom
     Cu12 = Cd[1,2] + (K0 - (Cd[1,1]+Cd[1,2]+Cd[1,3])/3)^2 / denom
-    Cu13 = Cd[1,3] + (K0 - (Cd[1,1]+Cd[1,2]+Cd[1,3])/3)^2 / denom
+    Cu13 = Cd[1,3] + (K0 - (Cd[1,1]+Cd[1,2]+Cd[1,3])/3)*(K0 - (Cd[3,3]+2Cd[1,3])/3) / denom
     Cu33 = Cd[3,3] + (K0 - (Cd[3,3]+2Cd[1,3])/3)^2 / denom
 
     Cu[1,1] = Cu11
