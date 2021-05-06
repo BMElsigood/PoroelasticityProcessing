@@ -101,7 +101,7 @@ Calculate radial stress over strain for radial stress step (Pc pump at load),a c
 function linEν_u(mechStress,mechStrain,iStart,iEnd)
     (a,c) = linfit(mechStrain[iStart:iEnd],mechStress[iStart:iEnd])
     Eν = a .*1e-3
-    return Eν, c
+    return Eν
 end
 """
     darcyperm(t,p1,p2,vol,area,L,μ,iStart,iEnd)
