@@ -96,7 +96,7 @@ end
 
 """
     linEν_u(mechStress,mechStrain,iStart,iEnd)
-Calculate a combined Young's modulus and Poisson's ratio, (E^u_x)/(1-(ν^u_x))
+Calculate radial stress over strain for radial stress step (Pc pump at load),a combined Young's modulus and Poisson's ratio, (E^u_x)/(1-(ν^u_x)) = 1/ (S11 + S22)
 """
 function linEν_u(mechStress,mechStrain,iStart,iEnd)
     (a,c) = linfit(mechStrain[iStart:iEnd],mechStress[iStart:iEnd])
@@ -247,16 +247,18 @@ end
 Calculates a linear fit of the undrained step in radial stress (from increasing Pc pump) between indices istart and iend which is the linear part of the increase
 ### Returns
 DataFrame of length(istart)
-columns: |meanstress|Bx|Eνz|
+columns: |meanstress|Bx|Eνx|
+where Eνx = (E^u_x)/(1-(ν^u_x)) = 1/ (S11 + S22) (rad stress / rad strain)
 """
 function radstresssteps(istart::Array{Int64,1},iend::Array{Int64,1},mechdata::keymechparams)
     N = length(istart)
-    array = zeros(N,2)
+    array = zeros(N,3)
     for i in 1:N
         array[i,1] = mean(mechdata.stress[istart[i]:iend[i]])
         array[i,2] = linBx(mechdata.Pc,mechdata.pp,istart[i],iend[i])
+        array[i,3] = linEν_u(mechdata.Pc,mechdata.εx,istart[i],iend[i])
     end
-    colnames = ["meanstress","Bx"]
+    colnames = ["meanstress","Bx","Eνx"]
     results = DataFrame(array,colnames)
     return results
 end
@@ -295,7 +297,7 @@ end
 Diffusion fit to get permeability, storage capacity
 ### Returns
 DataFrame of length(istart)
-columns: |meanstress|perm|stor|Bz|
+columns: |meanstress|perm|stor|Bx|
 """
 function radstressstepsdiff(y,istart::Array{Int64,1},ipmax::Array{Int64,1},ipexpundrain::Array{Int64,1},mechdata::keymechparams;
                             Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
