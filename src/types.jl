@@ -1,32 +1,3 @@
-#=e.g.
-
-mutable struct AEparams
-    folder::String
-    masterfile::String
-    sensorfile::String
-    skipcomponent::Array{String,1}
-    nchan::Int
-    T0::Float64
-    f0::Float64
-    filter#::T where T<:FilterCoefficients
-    fcc::Float64
-    I_master::Int
-    xcfront::Int
-    xcback::Int
-    Vmin::Float64
-    Vmax::Float64
-    pth::Paths
-end
-
-function show(io::IO, p::AEparams)
-    println("AEparams:")
-    for f in fieldnames(typeof(p))
-        println(" .",f, " : ", getproperty(p,f))
-    end
-end
-
-=#
-
 """
     choose mechdata we want for calc, could average sensors for pp and strain
 """
