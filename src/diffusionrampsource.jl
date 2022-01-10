@@ -49,7 +49,7 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
 
     # range of exploration for grid search
     ℓrange = @. A*L*Srange/βres
-    τℓrange = @. L * η * βres /k /A
+    τℓrange = @. L * η * βres /krange /A
 
     # re-zero Pf for each interval
     pstart = mechdata.pp[ipstart]
