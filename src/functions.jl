@@ -208,7 +208,27 @@ Bz(S,ν0,E0,ϕ,βf) = 3(2S[1,3]+S[3,3] - (1 - 2ν0)/E0)/
     B(S,ν0,E0,ϕ,βf)
 """
 B(S,ν0,E0,ϕ,βf) = 2/3 .*Bx(S,ν0,E0,ϕ,βf) .+1/3 .*Bz(S,ν0,E0,ϕ,βf)
+"""
+    BxBzWong(a1,a3,ϕ,βf,E0,ν0)
+    Uses Wong (2017) (https://doi.org/10.1002/2017JB014315)
 
+    ### Requires
+    * a1,a3 - (normalised) 1st order crack density tensor from Sayers and Kachanov 1995. i.e output [1] and [2] from function Sayers95.
+    * ϕ - sample porosity
+    * βf - fluid compressibility
+    * E0,ν0 - solid material parameters, e.g. from VRH
+
+    ### Returns
+    Bx, Bz
+"""
+function BxBzWong(a1,a3,ϕ,βf,E0,ν0)
+    #we want a1 and a3 not normalised
+    a1 = a1 ./ (3*E0*(2-ν0)/(32*(1-ν0^2)))
+    a3 = a3 ./ (3*E0*(2-ν0)/(32*(1-ν0^2)))
+    Bx = a1 /((2*a1 + a3) + ϕ*(βf - 3*(1-2ν0)/E0))
+    Bz = a3 /((2*a1 + a3) + ϕ*(βf - 3*(1-2ν0)/E0))
+    return Bx,Bz
+end
 """
     density(mass,length,diameter)
 """
