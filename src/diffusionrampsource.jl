@@ -1,4 +1,34 @@
 using ProgressMeter
+
+"""
+    psolvect(keymechdata::,y,istart::Array{Int64,1},iend::Array{Int64,1},idrain::Array{Int64,1},Srange,krange,Brange;axial = 1,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15,nintp = 30)
+
+solves pore pressure diffusion equation for step included in iarrays and averages 3D likelyhood matrix
+
+### Optional arguments
+axial = 1 (default) for axial stress steps, 0 for radial
+A = π*(40.0e-3 /2)^2
+L = 100.0e-3
+βres = 9e-15
+nintp = 30 (default) #resample time using all of ramp points and nintp when diffusing
+
+### Returns
+krange,Srange,Brange,average(likelyhoodmatrix)
+"""
+function psolvect(mechdata::keymechparams,y,istart::Array{Int64,1},iend::Array{Int64,1},idrain::Array{Int64,1},Srange,krange,Brange
+        ;axial = 1,A = π*(40.0e-3 /2)^2,len = 100.0e-3,βres = 9e-15,nintp = 30)
+    #first check equal length of istart,iend,idrain
+    length(istart) == length(iend) == length(idrain) || throw(DimensionMismatch("length of istart, iend, idrain not equal"))
+
+    N = length(istart)
+    Lvect = []
+    for i in 1:N
+        perm,stor,B,L,pcalc = pressurerampsol(mechdata,0.0,istart[i],iend[i],idrain[i],axial=axial,A=A,L=len,Srange=Srange,krange=krange,Brange=Brange,βres = βres,nintp=30)
+        push!(Lvect,L)
+    end
+
+    return Srange,krange,Brange,sum(Lvect) ./N
+end
 """
 pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundrain;
                                 axial = 1,pswitch=0,Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
