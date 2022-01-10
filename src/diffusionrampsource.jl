@@ -1,13 +1,8 @@
-# Pressure normalised by DeltaP
-# Length normalised by L
-# Time normalised by tau = L^2/alpha
-# Nondimensional parameter l = A L beta/C_res (A: sample area, beta: sample storage, C_res: reservoir storage)
-# Flux normalised by A L beta DeltaP/tau
-
+using ProgressMeter
 """
-pressurerampsolution(mecht,mechpp,mechstress,y,ipstart,ipmax,ipexpundrain;
+pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundrain;
                                 axial = 1,pswitch=0,Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
-                                η=0.9096e-3,A = π*(40.40e-3 /2)^2,L = 100.9e-3,βres = 9e-15)
+                                η=0.9096e-3,A = π*(40.40e-3 /2)^2,L = 100.9e-3,βres = 9e-15,nintp = 30)
 ### Optional arguments
 axial = 1 (default) for axial stress steps, 0 for radial
 pswitch = 0 (default), no plotting, 1 plotting
@@ -15,34 +10,34 @@ pswitch = 0 (default), no plotting, 1 plotting
 A = π*(40.0e-3 /2)^2
 L = 100.0e-3
 βres = 9e-15
+nintp = 30 (default) #resample time using all of ramp points and nintp when diffusing
 """
 function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundrain;
                                 axial = 1,Srange=10 .^range(-12,stop=-9,length=20),krange=10 .^range(-20,stop=-16,length=50),Brange = range(0,stop=1,length=50),
-                                η=0.9096e-3,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15)
-
-    l(A,L,βres,S) = A*L*S/βres
-    #tau = L^2 * S * η /k
-    taul(A,L,βres,η,k) = L * η * βres /k /A
+                                η=0.9096e-3,A = π*(40.0e-3 /2)^2,L = 100.0e-3,βres = 9e-15,
+                                nintp = 30)
 
     # range of exploration for grid search
     ℓrange = l.(A,L,βres,Srange)
     τℓrange = taul.(A,L,βres,η,krange)
-    #σp = 1.0*ones(size(Pf,2))
 
-    # normalise Pf for each interval
+    # re-zero Pf for each interval
     pstart = mechdata.pp[ipstart]
     pmax = mechdata.pp[ipmax]
     pexpundrain = mechdata.pp[ipexpundrain]
 
     Pf = mechdata.pp[ipstart:ipexpundrain] .- pstart
 
-    # interpolate on regular time grid
-    # pressure data
+    # interpolate on split time grid (1 during loading, 1 after)
     t0 = mechdata.time[ipstart:ipexpundrain] .-mechdata.time[ipstart]
-    t = collect(range(t0[1], stop=t0[end],length=30))
+    t1 = mechdata.time[ipstart:ipmax] .- mechdata.time[ipstart]
+    t2 = mechdata.time[ipmax+1:ipexpundrain] .- mechdata.time[ipstart]
+    t = vcat(t1,collect(range(t2[1], stop=t2[end],length=min(nintp,ipexpundrain-ipmax))))
+
 
     Pfnint = lininterp(t0, Pf, t)
     trampstop = mechdata.time[ipmax]-mechdata.time[ipstart]
+    #ramp defined by axial stress change or Pc change
     if axial == 0
         ramp = linfit(mechdata.time[ipstart:ipmax],mechdata.Pc[ipstart:ipmax])[1]
     else
@@ -64,6 +59,8 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     return perm,stor,B,likelyhood
 end
 
+l(A,L,βres,S) = A*L*S/βres
+taul(A,L,βres,η,k) = L * η * βres /k /A
 trapz(x, y) = integrate(x,y,Trapezoidal())
 
 # function for which we need roots
@@ -108,10 +105,9 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
     Nt = length(taulrange)
     L = zeros(Float64, Nt, Nl, NB)
 
-    for (iB, B) in enumerate(Brange)
-        println("loop: iB = $iB")
+    @showprogress for (iB, B) in enumerate(Brange)
         for (il, l) in enumerate(lrange)
-            phi = rootsf(l,40)
+            phi = rootsf(l,10)
             for (it, taul) in enumerate(taulrange)
                 tau = taul*l
                 pcalc = p_ramp(t,tau,y,l,B,ramp,t0,phi[2:end],len)
@@ -120,47 +116,29 @@ function invertp2ramp(t, pobs, y, lrange, taulrange,Brange, sigma,ramp,t0,len)
         end
     end
 
-    println("size(L) = ",size(L))
     I = argmax(exp.(-L))
     lbest = lrange[I[2]]
     taulbest = taulrange[I[1]]
     taubest = taulbest*lbest
     Bbest = Brange[I[3]]
 
-    pcalc = p_ramp(t,taubest, y, lbest,Bbest,ramp,t0,rootsf(lbest, 40)[2:end],len)
-    #=
-    #compute marginal pdfs
-    # here we use log of x,y values because they are jeffreys parameters!!
-    pdf_taul = trapz(log.(Brange),trapz(log.(lrange), permutedims(exp.(-L))))
+    pcalc = p_ramp(t,taubest, y, lbest,Bbest,ramp,t0,rootsf(lbest, 10)[2:end],len)
 
-    plot(pdf_taul)
-
-    pdf_ell  = trapz(log.(taulrange), exp.(-L))
-    # compute "errors" based on marginal pdfs
-    i_taul = findall(pdf_taul.>maximum(pdf_taul)/2)
-    taulmin = taulrange[i_taul[1]]
-    taulmax = taulrange[i_taul[end]]
-
-    i_ell = findall(pdf_ell.>maximum(pdf_ell)/2)
-    ellmin = lrange[i_ell[1]]
-    ellmax = lrange[i_ell[end]]
-    =#
-
-    return lbest, taulbest,Bbest, pcalc, L#, (ellmin, ellmax), (taulmin, taulmax)
+    return lbest, taulbest,Bbest, pcalc, L
 end
 
 # with ramp of stress A = (Bz/3) dσz/dt or A = B dPc/dt, until time t0 when stress is constant
 function p_ramp(t::Float64,tau,y::Float64,l,B,ramp,t0, phi,len)
-    A = B*ramp
+    A = B*ramp*tau
     if t < t0
-        r = A*t*(1- 2/(l+2))
+        r = A*(6+l + 12*l*(2+l)*t/tau -12*(2+l)*(y/len)^2)/(12*(2+l)^2)
         for phik in phi
-            r += (tau*A/(4*phik^2))*(1-exp(-4*phik^2 *t /tau))*(2.0*cos(2*phik*y/len)*sin(phik))/(phik - cos(phik)sin(phik))
+            r += (A/(phik^2))*exp(-4*phik^2 *t /tau)*cos(2*phik*y/len)/((2+l)*cos(phik) - 2*phik*sin(phik))
         end
     else
-        r = A*t0*(1-2/(l+2))
+        r = A*t0/tau*(l/(l+2))
         for phik in phi
-            r += (tau*A/(4*phik^2))*(exp(-4*phik^2 *(t-t0)/tau)-exp(-4*phik^2 *t/tau))*(2.0*cos(2*phik*y/len)*sin(phik))/(phik - cos(phik)sin(phik))
+            r += (A/(phik^2))*(exp(-4*phik^2 *t /tau)-exp(-4*phik^2 *((t-t0)/tau)))*cos(2*phik*y/len)/((2+l)*cos(phik) - 2*phik*sin(phik))
         end
     end
     return r
