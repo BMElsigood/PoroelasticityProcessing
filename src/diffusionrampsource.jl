@@ -90,7 +90,9 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
 end
 
 l(A,L,βres,S) = A*L*S/βres
+
 taul(A,L,βres,η,k) = L * η * βres /k /A
+
 trapz(x, y) = integrate(x,y,Trapezoidal())
 
 # function for which we need roots
