@@ -23,8 +23,7 @@ function psolvect(mechdata::keymechparams,y,istart::Array{Int64,1},iend::Array{I
     N = length(istart)
     Lvect = []
     for i in 1:N
-        println(Srange[1:2])
-        perm,stor,B,L,pcalc = pressurerampsolution(mechdata,y,istart[i],iend[i],idrain[i],axial=axial,A=A,L=len,Srange=Srange,krange=krange,Brange=Brange,βres = βres,nintp=30)
+        perm,stor,B,L = pressurerampsolution(mechdata,y,istart[i],iend[i],idrain[i],axial=axial,A=A,L=len,Srange=Srange,krange=krange,Brange=Brange,βres = βres,nintp=30)
         push!(Lvect,L)
     end
 
