@@ -48,8 +48,8 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
                                 nintp = 30)
 
     # range of exploration for grid search
-    ℓrange = l.(A,L,βres,Srange)
-    τℓrange = taul.(A,L,βres,η,krange)
+    ℓrange = @. A*L*Srange/βres
+    τℓrange = @. L * η * βres /k /A
 
     # re-zero Pf for each interval
     pstart = mechdata.pp[ipstart]
@@ -88,10 +88,6 @@ function pressurerampsolution(mechdata::keymechparams,y,ipstart,ipmax,ipexpundra
     end
     return perm,stor,B,likelyhood
 end
-
-l(A,L,βres,S) = A*L*S/βres
-
-taul(A,L,βres,η,k) = L * η * βres /k /A
 
 trapz(x, y) = integrate(x,y,Trapezoidal())
 
