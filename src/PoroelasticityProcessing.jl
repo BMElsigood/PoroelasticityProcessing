@@ -5,6 +5,8 @@ using Statistics: mean
 include("types.jl")
 include("functions.jl")
 include("diffusionrampsource.jl")
+include("diffusionplotting.jl")
+export plotppsolmovk,plotppsolmovS,plotppsolmovB,plotcheckfit,differrors
 include("velocities.jl")
 export keymechparams
 export lininterp,linfit,linBz, linB, linEz, volStrain, linK, linνz, linEν_u, darcyperm,density, gassmann, gassmannCijkl, axstresssteps,radstresssteps
