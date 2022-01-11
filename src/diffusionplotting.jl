@@ -1,4 +1,4 @@
-using NumericalIntegration,Roots, SpecialFunctions, QuadGK, LaTeXStrings
+using NumericalIntegration,Roots, SpecialFunctions, QuadGK, LaTeXStrings,PyPlot
 
 """
     plotcheckfit(mechdata::keymechparams,istart,iend,idrain,Srange,krange,Brange,L;axial = 1,A = π*(40.0e-3 /2)^2,len = 100.0e-3,η=0.9096e-3,βres = 9e-15)
