@@ -14,14 +14,14 @@ function plotcheckfit(mechdata::keymechparams,istart,iend,idrain,Srange,krange,B
     taubest = len^2 * Sbest * η / kbest
     lbest = A*len*Sbest/βres
     #interpolate pp on time for 2 grids
-    t0 = keymechdata.time[istart:idrain] .- keymechdata.time[istart]
-    t1 = keymechdata.time[istart:iend] .- keymechdata.time[istart]
-    t2 = keymechdata.time[iend+1:idrain] .- keymechdata.time[istart]
+    t0 = mechdata.time[istart:idrain] .- mechdata.time[istart]
+    t1 = mechdata.time[istart:iend] .- mechdata.time[istart]
+    t2 = mechdata.time[iend+1:idrain] .- mechdata.time[istart]
 
     t = vcat(collect(range(t1[1], stop=t1[end],length=20)),
             collect(range(t2[1], stop=t2[end],length=min(50,idrain-iend))))
 
-    Pf = keymechdata.pp[istart:idrain] .- keymechdata.pp[istart]
+    Pf = mechdata.pp[istart:idrain] .- mechdata.pp[istart]
     Pfnint = lininterp(t0, Pf, t)
 
     if axial == 0
@@ -32,21 +32,21 @@ function plotcheckfit(mechdata::keymechparams,istart,iend,idrain,Srange,krange,B
         ramp = linfit(mechdata.time[istart:iend],mechdata.stress[istart:iend])[1]
         Bi = round(3*Bbest,sigdigits=3)
         txt = L"B_z = "*"$Bi"*
-            string("\nequilibrate =",round(ramp*Bbest*(keymechdata.time[iend]- keymechdata.time[istart])*lbest/(lbest+2),sigdigits=3))
+            string("\nequilibrate =",round(ramp*Bbest*(mechdata.time[iend]- mechdata.time[istart])*lbest/(lbest+2),sigdigits=3))
     else
         ramp = linfit(mechdata.time[istart:iend],mechdata.Pc[istart:iend])[1]
         Bi = round(Bbest,sigdigits=3)
         txt = L"B = "*"$Bi"
     end
 
-    pcalc = p_ramp(t,taubest, 0.0, lbest,Bbest,ramp,keymechdata.time[iend]- keymechdata.time[istart],rootsf(lbest, 10)[2:end],len)
+    pcalc = p_ramp(t,taubest, 0.0, lbest,Bbest,ramp,mechdata.time[iend]- mechdata.time[istart],rootsf(lbest, 10)[2:end],len)
 
     figure()
     xlabel("Time,s")
     ylabel("Pp change, MPa")
     plot(t,pcalc,"r.")
     plot(t0,Pf,"k.")
-    axvline(keymechdata.time[iend] - keymechdata.time[istart])
+    axvline(mechdata.time[iend] - mechdata.time[istart])
     annotate(txt,[0.5,0.95],xycoords="axes fraction")
 
 end
