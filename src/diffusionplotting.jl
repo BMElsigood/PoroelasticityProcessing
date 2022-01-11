@@ -1,5 +1,4 @@
-using NumericalIntegration,Roots, SpecialFunctions, QuadGK
-
+using NumericalIntegration,Roots, SpecialFunctions, QuadGK, LaTeXStrings
 using PyCall
 @pyimport matplotlib.animation as anim
 
