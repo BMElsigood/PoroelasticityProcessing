@@ -400,3 +400,22 @@ function lininterp(x::AbstractVector,y::AbstractVector,xi::Number)
     return yi
 
 end
+"""
+    numdiff(x,y,time,points,α,tol;plot=0)
+interpolates x and y vectors by time across points then differntiates using NumericalDifferentiation package
+"""
+function numdiff(x,y,time,points,α,tol;plot=0)
+    t0 = time
+    t = collect(range(t0[1], stop=t0[end],length=points))
+    xint = lininterp(t0,x, t)
+    yint = lininterp(t0,y, t)
+    dydx = NumericalDifferentiation.differentiate(xint,yint,NumericalDifferentiation.TotalVariation(),α,tol)
+    if plot == 1
+        figure()
+        plot(x,y,"k")
+        plot(xint,NumericalDifferentiation.integrationoperator(xint,dydx) .+yint[1],"k:")
+        xlabel("x")
+        ylabel("y")
+    end
+    return dydx, xint,yint
+end
