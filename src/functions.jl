@@ -419,3 +419,65 @@ function numdiff(x,y,time,points,α,tol;plot=0)
     end
     return dydx, xint,yint
 end
+"""
+    alllinfit(mechdata::keymechparams,izfriction,izend,izdrain,ixlinstart,npoints)
+
+"""
+function alllinfit(mechdata::keymechparams,izfriction,izend,izdrain,ixlinstart,npoints)
+
+    stress = Float64[]
+    dstress = Float64[]
+    axstrain =  Float64[]
+    radstrain =  Float64[]
+    pp =  Float64[]
+
+    for n in 1:length(izend)
+        start = izend[n] - npoints
+        for el in start:izend[n]
+            push!(stress,mechdata.stress[el])
+            push!(dstress,mechdata.stress[el] - mechdata.stress[start])
+            push!(axstrain,mechdata.εz[el] - mechdata.εz[start])
+            push!(radstrain,mechdata.εx[el] - mechdata.εx[start])
+            push!(pp,mechdata.pp[el] - mechdata.pp[start])
+        end
+    end
+
+    Ez,c = linfit(axstrain,dstress)
+    νz,c = linfit(axstrain,radstrain)
+    Bz,c = linfit(dstress,pp)
+    mstress = mean(stress)
+
+    Pc = Float64[]
+    ppx = Float64[]
+    for n in 1:length(ixlinstart)
+        for el in ixlinstart[n]:ixlinstart[n]+npoints
+            push!(Pc,mechdata.Pc[el] - mechdata.Pc[ixlinstart[n]])
+            push!(ppx,mechdata.pp[el] - mechdata.pp[ixlinstart[n]])
+        end
+    end
+
+    Bx,c = linfit(Pc,ppx)
+
+    Ez = Ez*1e-3
+    νz = -νz
+    Bz = Bz*3
+    Bx = Bx*3/2
+
+    stress = Float64[]
+    axstrain =  Float64[]
+    radstrain =  Float64[]
+    for n in 1:length(izfriction)
+        start = izfriction[n]
+        last = izdrain[n]
+        push!(stress,mechdata.stress[last]-mechdata.stress[start])
+        push!(axstrain,mechdata.εz[last]-mechdata.εz[start])
+        push!(radstrain,mechdata.εx[last]-mechdata.εx[start])
+    end
+    Ezd,c = linfit(axstrain,stress)
+    νzd,c = linfit(axstrain,radstrain)
+
+    Ezd = Ezd*1e-3
+    νzd = -νzd
+
+    return mstress,Ez,νz,Bz,Bx,Ezd,νzd
+end
