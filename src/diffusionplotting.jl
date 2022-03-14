@@ -5,7 +5,7 @@ using NumericalIntegration,Roots, SpecialFunctions, QuadGK, LaTeXStrings,PyPlot
 
 plots "raw" pore pressure verses time, against pp from inversion
 """
-function plotcheckfit(mechdata::keymechparams,istart,iend,idrain,Srange,krange,Brange,L;axial = 1,A = π*(40.0e-3 /2)^2,len = 100.0e-3,η=0.9096e-3,βres = 9e-15)
+function plotcheckfit(mechdata::keymechparams,istart,iend,idrain,Srange,krange,Brange,L;axial = 1,A = π*(40.0e-3 /2)^2,len = 100.0e-3,η=0.9096e-3,βres = 9e-15,nintp = 30)
     I = argmax(exp.(-L))
     Bbest = Brange[I[3]]
     Sbest = Srange[I[2]]
@@ -18,8 +18,8 @@ function plotcheckfit(mechdata::keymechparams,istart,iend,idrain,Srange,krange,B
     t1 = mechdata.time[istart:iend] .- mechdata.time[istart]
     t2 = mechdata.time[iend+1:idrain] .- mechdata.time[istart]
 
-    t = vcat(collect(range(t1[1], stop=t1[end],length=20)),
-            collect(range(t2[1], stop=t2[end],length=min(50,idrain-iend))))
+    t = vcat(t1,
+            collect(range(t2[1], stop=t2[end],length=min(nintp,idrain-iend))))
 
     Pf = mechdata.pp[istart:idrain] .- mechdata.pp[istart]
     Pfnint = lininterp(t0, Pf, t)
