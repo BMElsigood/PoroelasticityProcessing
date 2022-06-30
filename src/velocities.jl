@@ -41,8 +41,8 @@ function svyCompliancet(survey,ρ,(θp,vp)::Tuple{Array{Float64,1},Array{Array{F
     ϵ, δ, γ = moduli2thomsen(C0)
     vp0,vs0 = velocities0(C0,ρ)
 
-    m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,(vp0,10),(vs0,10),(ϵ,10),(δ,10),(γ,10))
-    #m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,vp0,vs0,ϵ, δ, γ)
+    #m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,(vp0,10),(vs0,10),(ϵ,10),(δ,10),(γ,10))
+    m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,vp0,vs0,ϵ, δ, γ)#use this; huge difference
 
     C1 = thomsen2moduli(m1[1],m1[2],ρ,m1[3],m1[4],m1[5])
     return C1.*1e9,cm,anglep,anglesh
@@ -63,8 +63,8 @@ function svyCompliancet(survey,ρ,(θp,vp),(θsh,vsh),C0;angerr = 0.05,vperr = 0
     ϵ, δ, γ = moduli2thomsen(C0)
     vp0,vs0 = velocities0(C0,ρ)
 
-    m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,(vp0,100),(vs0,100),(ϵ,100),(δ,100),(γ,100))
-    #m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,vp0,vs0,ϵ, δ, γ)
+    #m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,(vp0,100),(vs0,100),(ϵ,100),(δ,100),(γ,100))
+    m1, anglep, anglesv, anglesh, cm = findthomsen(p,sv,sh,vp0,vs0,ϵ, δ, γ)
 
     C1 = thomsen2moduli(m1[1],m1[2],ρ,m1[3],m1[4],m1[5])
     return C1.*1e9,cm,anglep,anglesh
@@ -100,10 +100,13 @@ function surveytocompliancedf(surveyrange,ρ,(θp,vp),(θsh,vsh))
         array[i,3] = vp[i]
         array[i,4] = θsh
         array[i,5] = vsh[i]
+#=
         if n == 1
             C1,cm,anglep,anglesh = svyCompliancet(i,ρ,(θp,vp),(θsh,vsh),angerr = 0.1,vperr = [0.04,0.08,0.08,0.08,0.08],vsherr=[0.08,1,2])
         else C1,cm,anglep,anglesh = svyCompliancet(i,ρ,(θp,vp),(θsh,vsh),array[i-1,6],angerr = 0.1,vperr = [0.04,0.08,0.08,0.08,0.08],vsherr=[0.08,1,2])
         end
+=#
+        C1,cm,anglep,anglesh = svyCompliancet(i,ρ,(θp,vp),(θsh,vsh),angerr = 0.01,vperr = 0.005,vsherr=0.03)
         array[i,6] = C1
         ϵ, δ, γ = moduli2thomsen(C1)
         array[i,7:9] = [ϵ, δ, γ]

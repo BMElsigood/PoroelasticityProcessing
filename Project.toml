@@ -1,7 +1,7 @@
 name = "PoroelasticityProcessing"
 uuid = "5681e357-4ad3-42a2-9b36-44a3e81177e2"
 authors = ["BMElsigood <60468325+BMElsigood@users.noreply.github.com> and contributors"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
