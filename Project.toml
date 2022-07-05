@@ -18,6 +18,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 VTIModuli = "b384fe3e-63ee-4285-97e7-28d65bd880b4"
 
 [compat]
+SpecialFunctions = "2"
 julia = "1"
 
 [extras]
